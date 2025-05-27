@@ -1,6 +1,7 @@
 import datetime
 from datetime import timezone
 from email.policy import default
+<<<<<<< HEAD
 from django.db import models
 from django.contrib.auth.models import User
 from django.core.validators import RegexValidator, FileExtensionValidator, EmailValidator, MinValueValidator
@@ -40,6 +41,12 @@ class APIRequestLog(models.Model):
 
     def __str__(self):
         return f"{self.edge_node.name} @ {self.request_time}"
+=======
+
+from django.db import models
+from django.contrib.auth.models import User
+from django.core.validators import RegexValidator, FileExtensionValidator, EmailValidator, MinValueValidator
+>>>>>>> d30f84b59699fed65edce0472ade1c9665d8cb10
 
 
 class TimeStampedModel(models.Model):

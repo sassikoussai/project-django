@@ -14,6 +14,7 @@ from .serializers import (
     ScreeningAnswerSerializer, FeedbackSerializer,
     NotificationSerializer, JobApplicationSerializer , RecruiterSerializer
 )
+<<<<<<< HEAD
 from rest_framework import viewsets
 from .models import EdgeNode
 from .serializers import EdgeNodeSerializer
@@ -23,6 +24,8 @@ class EdgeNodeViewSet(viewsets.ModelViewSet):
     queryset = EdgeNode.objects.all()
     serializer_class = EdgeNodeSerializer
     authentication_classes = [EdgeNodeAPIKeyAuthentication]
+=======
+>>>>>>> d30f84b59699fed65edce0472ade1c9665d8cb10
 
 
 class ApplicantViewSet(viewsets.ModelViewSet):
