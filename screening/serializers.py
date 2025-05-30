@@ -4,7 +4,6 @@ from .models import (
     ScreeningQuestion, ScreeningAnswer, Feedback,
     Notification, JobApplication
 )
-<<<<<<< HEAD
 from rest_framework import serializers
 from .models import EdgeNode, APIRequestLog
 
@@ -17,8 +16,6 @@ class APIRequestLogSerializer(serializers.ModelSerializer):
     class Meta:
         model = APIRequestLog
         fields = '__all__'
-=======
->>>>>>> d30f84b59699fed65edce0472ade1c9665d8cb10
 
 class ApplicantSerializer(serializers.ModelSerializer):
     class Meta:
