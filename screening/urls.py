@@ -7,6 +7,16 @@ from screening.views import (
     ScreeningAnswerViewSet, FeedbackViewSet,
     NotificationViewSet, JobApplicationViewSet
 )
+from rest_framework import routers
+from django.urls import path
+from .views import EdgeNodeViewSet, RequestRoutingView
+
+router = routers.DefaultRouter()
+router.register(r'edge-nodes', EdgeNodeViewSet, basename='edgenode')
+
+urlpatterns = router.urls + [
+    path('route-request/', RequestRoutingView.as_view(), name='route-request'),
+]
 
 router = DefaultRouter()
 router.register('applicants', ApplicantViewSet, basename='applicant')

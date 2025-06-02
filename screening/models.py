@@ -10,6 +10,8 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.contrib.auth.models import User
 from django.core.validators import RegexValidator, FileExtensionValidator, EmailValidator, MinValueValidator
+import secrets
+
 
 
 def validate_latitude(value):
@@ -26,12 +28,16 @@ class EdgeNode(models.Model):
     latitude = models.FloatField(validators=[validate_latitude])
     longitude = models.FloatField(validators=[validate_longitude])
     status = models.CharField(max_length=20, choices=[("healthy", "Healthy"), ("unhealthy", "Unhealthy")], default="healthy")
-    api_key = models.CharField(max_length=40, unique=True)  # For secure comms
+    api_key = models.CharField(max_length=100, unique=True, blank=True)
     registered_at = models.DateTimeField(auto_now_add=True)
     last_health_check = models.DateTimeField(null=True, blank=True)
     
     def __str__(self):
         return self.name
+    def save(self, *args, **kwargs):
+        if not self.api_key:
+            self.api_key = secrets.token_hex(20)
+        super().save(*args, **kwargs)
 
 class APIRequestLog(models.Model):
     edge_node = models.ForeignKey(EdgeNode, related_name='api_logs', on_delete=models.CASCADE)

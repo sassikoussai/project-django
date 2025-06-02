@@ -18,11 +18,72 @@ from rest_framework import viewsets
 from .models import EdgeNode
 from .serializers import EdgeNodeSerializer
 from .authentication import EdgeNodeAPIKeyAuthentication
+from rest_framework import viewsets, permissions, status
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from .models import EdgeNode, APIRequestLog
+from .serializers import EdgeNodeSerializer, APIRequestLogSerializer
+import secrets
+from rest_framework.views import APIView
+from .tasks import deploy_to_flyio
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from django.views.decorators.csrf import csrf_exempt
+from rest_framework.decorators import action
+from django.utils.decorators import method_decorator
+
+@api_view(['POST'])
+def trigger_flyio_deploy(request):
+    app_name = request.data.get("app_name")
+    image_tag = request.data.get("image_tag")
+    task = deploy_to_flyio.delay(app_name, image_tag)
+    return Response({"task_id": task.id, "status": "Deployment triggered"})
+
+class RequestRoutingView(APIView):
+    permission_classes = [EdgeNodeAPIKeyAuthentication]
+
+    def post(self, request):
+        # Example: route to the first healthy node (replace with your logic)
+        node = EdgeNode.objects.filter(status="healthy").first()
+        if not node:
+            return Response({"error": "No healthy edge node available."}, status=503)
+        # Optionally, log the request
+        APIRequestLog.objects.create(
+            edge_node=node,
+            response_time_ms=0,  # Placeholder
+            latitude=node.latitude,
+            longitude=node.longitude,
+            status_code=200,
+            client_ip=request.META.get('REMOTE_ADDR'),
+            extra_data=request.data
+        )
+        return Response({
+            "routed_to": node.name,
+            "ip_address": node.ip_address,
+            "location": {"lat": node.latitude, "lng": node.longitude}
+        })
 
 class EdgeNodeViewSet(viewsets.ModelViewSet):
     queryset = EdgeNode.objects.all()
     serializer_class = EdgeNodeSerializer
-    authentication_classes = [EdgeNodeAPIKeyAuthentication]
+    permission_classes = [EdgeNodeAPIKeyAuthentication]  
+
+    @method_decorator(csrf_exempt, name='dispatch')
+    @action(detail=False, methods=['post'], url_path='register')
+    def register(self, request):
+        # Custom registration logic
+        serializer = EdgeNodeSerializer(data=request.data)
+        if serializer.is_valid():
+            # Generate a secure API key
+            api_key = secrets.token_urlsafe(32)
+            edge_node = serializer.save(api_key=api_key)
+            return Response({
+                "message": "Edge node registered successfully.",
+                "node": EdgeNodeSerializer(edge_node).data,
+                "api_key": api_key
+            }, status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class ApplicantViewSet(viewsets.ModelViewSet):

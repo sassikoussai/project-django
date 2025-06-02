@@ -84,8 +84,8 @@ WSGI_APPLICATION = "ai_based_resume_screening_recruitment.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-# DATABASES = {
-#     'default': env.db()
+#DATABASES = {
+ #    'default': env.db()
 # }
 DATABASES = {
     'default': {
@@ -116,7 +116,11 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "screening.authentication.EdgeNodeAPIKeyAuthentication",
+    ]
+}
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
 
@@ -141,3 +145,18 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 CELERY_BROKER_URL = 'redis://localhost:6379/0'
 CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+from celery.schedules import crontab
+
+CELERY_BEAT_SCHEDULE = {
+    'deploy-to-flyio-daily': {
+        'task': 'screening.tasks.deploy_to_flyio',
+        'schedule': crontab(hour=0, minute=0),
+    },
+}
+import environ
+
+env = environ.Env()
+environ.Env.read_env()  # Make sure your .env is loaded
+
+ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")
+ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "*").split(",")
