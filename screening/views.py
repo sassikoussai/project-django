@@ -2,6 +2,7 @@ from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action, api_view
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.exceptions import PermissionDenied
 from django.db.models import Q
 import secrets
 
@@ -18,9 +19,9 @@ from .serializers import (
     EdgeNodeSerializer, APIRequestLogSerializer
 )
 from .authentication import EdgeNodeAPIKeyAuthentication
+from .permissions import IsEdgeNodeAuthenticated  # Ajoutez ce fichier permissions.py ci-dessous
 from .tasks import deploy_to_flyio
 
-# ---- Remain as is ----
 @api_view(['POST'])
 def trigger_flyio_deploy(request):
     app_name = request.data.get("app_name")
@@ -30,9 +31,12 @@ def trigger_flyio_deploy(request):
 
 class RequestRoutingView(APIView):
     authentication_classes = [EdgeNodeAPIKeyAuthentication]
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsEdgeNodeAuthenticated]
 
     def post(self, request):
+        edge_node = getattr(request, "edge_node", None)
+        if not edge_node:
+            return Response({"error": "No valid API key or edge node."}, status=401)
         node = EdgeNode.objects.filter(status="healthy").first()
         if not node:
             return Response({"error": "No healthy edge node available."}, status=503)
@@ -55,7 +59,7 @@ class EdgeNodeViewSet(viewsets.ModelViewSet):
     queryset = EdgeNode.objects.all()
     serializer_class = EdgeNodeSerializer
     authentication_classes = [EdgeNodeAPIKeyAuthentication]
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsEdgeNodeAuthenticated]
 
     @action(detail=False, methods=['post'], url_path='register', permission_classes=[permissions.AllowAny])
     def register(self, request):
@@ -85,7 +89,6 @@ class ApplicantViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['get'], url_path=r'by_skill/(?P<skill>[^/.]+)')
     def get_developer_by_skill(self, request, skill=None):
-        # NOTE: Use skill from URL, if not found, fallback to query param
         skill = skill or request.query_params.get('skill')
         applicants = Applicant.objects.filter(skills__icontains=skill)
         if not applicants.exists():
@@ -156,7 +159,10 @@ class ResumeViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.AllowAny]
 
     def perform_create(self, serializer):
-        serializer.save(applicant=self.request.user.applicant_profile)
+        if self.request.user and self.request.user.is_authenticated:
+            serializer.save(applicant=self.request.user.applicant_profile)
+        else:
+            raise PermissionDenied("Authentication required to upload a resume.")
 
 class InterviewViewSet(viewsets.ModelViewSet):
     queryset = Interview.objects.all()
@@ -200,12 +206,16 @@ class NotificationViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['post'])
     def mark_all_read(self, request):
+        if not request.user or not request.user.is_authenticated:
+            return Response({'error': 'Authentication required'}, status=status.HTTP_401_UNAUTHORIZED)
         notifications = Notification.objects.filter(user=request.user, is_read=False)
         notifications.update(is_read=True)
         return Response({'status': 'all notifications marked as read'})
 
     @action(detail=True, methods=['post'])
     def mark_read(self, request, pk=None):
+        if not request.user or not request.user.is_authenticated:
+            return Response({'error': 'Authentication required'}, status=status.HTTP_401_UNAUTHORIZED)
         notification = self.get_object()
         notification.is_read = True
         notification.save()
@@ -217,4 +227,7 @@ class JobApplicationViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.AllowAny]
 
     def perform_create(self, serializer):
-        serializer.save(applicant=self.request.user.applicant_profile)
+        if self.request.user and self.request.user.is_authenticated:
+            serializer.save(applicant=self.request.user.applicant_profile)
+        else:
+            raise PermissionDenied("Authentication required to apply for a job.")

@@ -1,5 +1,6 @@
 from rest_framework.authentication import BaseAuthentication
 from rest_framework.exceptions import AuthenticationFailed
+from django.contrib.auth.models import AnonymousUser
 from .models import EdgeNode
 
 class EdgeNodeAPIKeyAuthentication(BaseAuthentication):
@@ -11,4 +12,5 @@ class EdgeNodeAPIKeyAuthentication(BaseAuthentication):
             edge_node = EdgeNode.objects.get(api_key=api_key)
         except EdgeNode.DoesNotExist:
             raise AuthenticationFailed('Invalid API Key')
-        return (edge_node, None)
+        request.edge_node = edge_node
+        return (AnonymousUser(), None)

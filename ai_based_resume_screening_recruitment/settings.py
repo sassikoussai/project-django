@@ -11,18 +11,17 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
-
 import os
 import environ
-from django.conf.global_settings import CSRF_TRUSTED_ORIGINS
-
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-env = environ.Env(DEBUG=(bool, False))
-# Take environment variables from .env file
-environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
+# Initialize environment variables
+env = environ.Env(
+    DEBUG=(bool, False)
+)
+environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
@@ -33,9 +32,9 @@ SECRET_KEY = env('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env('DEBUG')
 
-
-CSRF_TRUSTED_ORIGINS = env('CSRF_TRUSTED_ORIGINS', default=[])
-
+# Allowed hosts and CSRF trusted origins from environment
+ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=[])
+CSRF_TRUSTED_ORIGINS = env.list('CSRF_TRUSTED_ORIGINS', default=[])
 
 # Application definition
 
@@ -46,8 +45,8 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    'rest_framework',
-    'screening'
+    "rest_framework",
+    "screening",
 ]
 
 MIDDLEWARE = [
@@ -81,23 +80,23 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "ai_based_resume_screening_recruitment.wsgi.application"
 
-
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
+# For production, set DATABASE_URL in .env, e.g.:
+# DATABASE_URL=postgres://postgres:admin123@localhost:5432/recruitment
 
-#DATABASES = {
- #    'default': env.db()
-# }
 DATABASES = {
-    'default': {
+    'default':{# env.db(default=f'postgres://postgres:admin123@localhost:5432/recruitment')
+    
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': "recruitment",
         'HOST': "localhost",
         'USER': "postgres",
         'PASSWORD': "admin123",
         'PORT': 5432,
-    }
-}
+    }}
+
+
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
@@ -120,8 +119,10 @@ AUTH_PASSWORD_VALIDATORS = [
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "screening.authentication.EdgeNodeAPIKeyAuthentication",
+         "rest_framework.authentication.SessionAuthentication",
     ]
 }
+
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
 
@@ -133,7 +134,6 @@ USE_I18N = True
 
 USE_TZ = True
 
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
@@ -144,6 +144,8 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# Celery Configuration
 CELERY_BROKER_URL = 'redis://localhost:6379/0'
 CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
 from celery.schedules import crontab
@@ -154,10 +156,3 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': crontab(hour=0, minute=0),
     },
 }
-import environ
-
-env = environ.Env()
-environ.Env.read_env() 
-
-ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")
-print("ALLOWED_HOSTS:", ALLOWED_HOSTS)
