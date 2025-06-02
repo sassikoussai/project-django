@@ -1,24 +1,16 @@
 from rest_framework.routers import DefaultRouter
 from django.urls import path, include
 
-from screening.views import (
+from .views import (
     ApplicantViewSet, ResumeViewSet, JobViewSet,
     InterviewViewSet, ScreeningQuestionViewSet,
     ScreeningAnswerViewSet, FeedbackViewSet,
-    NotificationViewSet, JobApplicationViewSet
+    NotificationViewSet, JobApplicationViewSet,
+    EdgeNodeViewSet, RequestRoutingView
 )
-from rest_framework import routers
-from django.urls import path
-from .views import EdgeNodeViewSet, RequestRoutingView
-
-router = routers.DefaultRouter()
-router.register(r'edge-nodes', EdgeNodeViewSet, basename='edgenode')
-
-urlpatterns = router.urls + [
-    path('route-request/', RequestRoutingView.as_view(), name='route-request'),
-]
 
 router = DefaultRouter()
+router.register('edge-nodes', EdgeNodeViewSet, basename='edgenode')
 router.register('applicants', ApplicantViewSet, basename='applicant')
 router.register('jobs', JobViewSet, basename='job')
 router.register('resumes', ResumeViewSet, basename='resume')
@@ -33,4 +25,5 @@ app_name = 'screening'
 
 urlpatterns = [
     path('', include(router.urls)),
-    ]
+    path('route-request/', RequestRoutingView.as_view(), name='route-request'),
+]

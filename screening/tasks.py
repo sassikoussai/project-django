@@ -23,6 +23,10 @@ except Exception as e:
     ai_model = None
     logging.error(f"Failed to load AI model: {e}")
 
+
+
+ # AI model used
+
 def predict_optimal_node(features):
     """
     Predict the optimal edge node based on input features using the AI model.
@@ -55,6 +59,9 @@ def deploy_to_flyio():
     except subprocess.CalledProcessError as e:
         logging.error("Fly.io deploy failed: %s", e.stderr)
         return {"status": "failed", "error": e.stderr}
+
+
+# AI model used
 
 @shared_task
 def deploy_code_with_ai_routing(deployment_payload: dict, features: list):

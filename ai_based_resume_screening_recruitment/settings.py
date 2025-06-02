@@ -16,6 +16,7 @@ import os
 import environ
 from django.conf.global_settings import CSRF_TRUSTED_ORIGINS
 
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 env = environ.Env(DEBUG=(bool, False))
@@ -32,7 +33,7 @@ SECRET_KEY = env('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env('DEBUG')
 
-ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "*").split(",")
+
 CSRF_TRUSTED_ORIGINS = env('CSRF_TRUSTED_ORIGINS', default=[])
 
 
@@ -156,7 +157,7 @@ CELERY_BEAT_SCHEDULE = {
 import environ
 
 env = environ.Env()
-environ.Env.read_env()  # Make sure your .env is loaded
+environ.Env.read_env() 
 
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")
-ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "*").split(",")
+print("ALLOWED_HOSTS:", ALLOWED_HOSTS)
