@@ -1,3 +1,4 @@
+NB / my .env is here 
 # AI-Based Resume Screening Recruitment Platform
 
 This project implements an AI-powered resume screening recruitment platform leveraging Django, Django REST Framework, GraphQL, Celery, and edge computing capabilities via Fly.io. The architecture supports low-latency applications by intelligently routing requests to the optimal edge node, with advanced security and scalable deployment features.
