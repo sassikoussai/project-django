@@ -1,144 +1,173 @@
-# Edge Computing with Django for Low-Latency Applications
+# AI-Based Resume Screening Recruitment Platform
 
-A practical project demonstrating distributed edge node management, monitoring, and low-latency application deployment using Django, Celery, GraphQL, REST, and AI-based routing.
+This project implements an AI-powered resume screening recruitment platform leveraging Django, Django REST Framework, GraphQL, Celery, and edge computing capabilities via Fly.io. The architecture supports low-latency applications by intelligently routing requests to the optimal edge node, with advanced security and scalable deployment features.
 
----
+## Deployed Application
 
-## 🚀 Features
-
-### Practical Part
-
-- **Edge Node Models:**  
-  Define `EdgeNode` and `APIRequestLog` models with geolocation fields to represent distributed compute nodes and their API activity.
-
-- **Location Field Validation:**  
-  Enforce valid latitude/longitude values through custom Django model validators.
-
-- **Serialization & GraphQL Integration:**  
-  - Create DRF serializers for edge node registration and health checks.
-  - Define GraphQL types for edge node data and health checks.
-
-- **REST API Endpoints:**  
-  - Register edge nodes via REST (DRF).
-  - Route requests to nodes using RESTful endpoints.
-
-- **GraphQL Monitoring:**  
-  - GraphQL queries for live node performance and API request logs.
-
-- **Secure Edge Communications:**  
-  - API key authentication for edge node access.
-  - Mutual TLS (mTLS) recommended—configure at your proxy or Fly.io platform layer.
-
-- **Celery Task Orchestration:**  
-  - Schedule Celery tasks to deploy code to edge platforms (like Fly.io) via their API.
-
-- **AI-Based Routing:**  
-  - Integrate a trained ML model to predict the optimal edge node for each deployment or request.
-  - Use predictions within Celery deployment tasks for smart, latency-aware routing.
+- **Production URL:** [https://ai-based-resume-screening-recruitment.fly.dev](https://ai-based-resume-screening-recruitment.fly.dev)
+- **Base URL:** `https://ai-based-resume-screening-recruitment.fly.dev/api/`
 
 ---
 
-## 🛠️ Quickstart
+## Features
 
-### 1. Clone & Install Dependencies
+1. **Edge Computing with Django for Low-Latency Applications**
+    - **Models:**
+        - `EdgeNode`: Represents an edge server with location (latitude, longitude).
+        - `APIRequestLog`: Logs API requests with location data.
+    - **Validation:** Enforces valid latitude/longitude using Django model validators.
+    - **Serializers & GraphQL Types:** For edge node registration and health checks.
+    - **REST API Endpoints:**
+        - Register edge nodes (`/api/edge/register/`)
+        - Route requests to optimal edge node (`/api/edge/route/`)
+    - **GraphQL Queries:** Monitor node performance metrics.
+    - **Security:** Mutual TLS and API key-based authentication for edge communications.
+    - **Celery Tasks:** 
+        - Automated code deployment to edge platforms (Fly.io) via API.
+        - AI-based routing decisions to predict the optimal edge node for each request.
+    - **Monitoring & Health Checks:** Exposed via both REST and GraphQL.
 
-```sh
-git clone https://github.com/sassikoussai/project-django.git
-cd project-django
-pip install -r requirements.txt
-```
+---
 
-### 2. Environment Setup
+## Usage
 
-Create a `.env` file in your project root with the following content:
+### Environment Variables
 
-```dotenv
+Add the following to your `.env` file (do **not** commit this file to public repos):
+
+```env
 SECRET_KEY='django-insecure-7obc$(lqz9=kd#)!-8o4a7=0z#0=8o*-qg2wxa14a8)5czge-&'
 DATABASE_URL='postgres://postgres:nNYoJRRCNyvyJik@recruitment-db.flycast:5432/postgres'
 DEBUG=True
-CSRF_TRUSTED_ORIGINS='https://ai-based-resume-screening-recruitment.fly.dev'
-FLY_API_TOKEN="FlyV1 fm2_lJPECAAAAAAACJWPxBBI56/YCcuZOMb9T4kF+6pBwrVodHRwczovL2FwaS5mbHkuaW8vdjGWAJLOABALph8Lk7lodHRwczovL2FwaS5mbHkuaW8vYWFhL3YxxDy5q9ZVCYDOs+2BPQAi6biXYPHd8emIWKIwUuW1s4Q/xQAWgrAvch22FCS9LmrGtsZf0pg5SQeaWmszmffETkdXtZE5/O09B+yt1gYqBXRg79MFnvpgw3XSL2Gw8LyRVVkkaYSWmQxpulVVphXCEYVakAR2IgyauNOhDx1kcUF0mTYmQ69VCJVV1oTuvw2SlAORgc4AcEbPHwWRgqdidWlsZGVyH6J3Zx8BxCCgB3whO/EBEYFPCwjIXXolRiK4t6iNSqo6+zXmdyX9dg==,fm2_lJPETkdXtZE5/O09B+yt1gYqBXRg79MFnvpgw3XSL2Gw8LyRVVkkaYSWmQxpulVVphXCEYVakAR2IgyauNOhDx1kcUF0mTYmQ69VCJVV1oTuv8QQ57CG7KOiDOuEt77DU4ONr8O5aHR0cHM6Ly9hcGkuZmx5LmlvL2FhYS92MZgEks5oNj9qzwAAAAEkLl2IF84AEDH7CpHOABAx+wzEEJ/JFDuvQevevFNJ6sSaXVfEIKeullec4oIyTLemCUeylJ4kPOtWj/JUK5Gmi9GpNrL7"
+CSRF_TRUSTED_ORIGINS=https://ai-based-resume-screening-recruitment.fly.dev,localhost,127.0.0.1
+FLY_API_TOKEN="FlyV1 fm2_lJPECAAAAAAACJWPxBCo1n7MrSOOFeUAawGc/Lm/wrVodHRwczovL2FwaS5mbHkuaW8vdjGWAJLOABALph8Lk7lodHRwczovL2FwaS5mbHkuaW8vYWFhL3YxxDym3WPD2iu0SPKNr8l2FvhErafzV3MIeYFu020OQ3XKCpRU2HqCqJl1evRZUlAbC7oPfNEjv4NCZLIOZBrETv+KbPVrnFAnCfEDGUKOutUA2gd2gdaqhaC12sjN1n6zs3v9s0KjzLAUJD0OIOy4v8QXKf5ttZpGYSKSJb+FrFhg1yVnlcCFOuA3OPkT9A2SlAORgc4AcEbPHwWRgqdidWlsZGVyH6J3Zx8BxCDbHQiRsL+Jz5bnaS0A2C6PAeA1cdJ1i5lL6yOoubaXpg==,fm2_lJPETv+KbPVrnFAnCfEDGUKOutUA2gd2gdaqhaC12sjN1n6zs3v9s0KjzLAUJD0OIOy4v8QXKf5ttZpGYSKSJb+FrFhg1yVnlcCFOuA3OPkT9MQQSmg/om2mPemCEP2E22AR3cO5aHR0cHM6Ly9hcGkuZmx5LmlvL2FhYS92MZgEks5oPkS7zwAAAAEkNmLZF84AD2zWCpHOAA9s1gzEEMvMOXoRGNOri7vrhFXM7Z3EICDAyQqQw7j4H11s0l5vbHdbMNZDrjsWCb96a96KAbAI"
 FLY_APP_NAME=ai-based-resume-screening-recruitment-master
 ALLOWED_HOSTS=ai-based-resume-screening-recruitment-master.fly.dev,localhost,127.0.0.1
+X-CSRFToken=29dpNrWIbKFF1G1g1VSqK4kajVPLvzWG
 ```
-
-### 3. Migrate & Create Superuser
-
-```sh
-python manage.py migrate
-python manage.py createsuperuser
-```
-
-### 4. Run Services
-
-- **Django:**  
-  `python manage.py runserver`
-- **Celery:**  
-  `celery -A ai_based_resume_screening_recruitment worker -l info`
 
 ---
 
-## 🔌 API Overview
+### API Overview
 
-### REST Endpoints
+#### REST Endpoints
 
-- `POST /api/edge-nodes/` – Register an edge node
-- `GET /api/edge-nodes/` – List/monitor edge nodes
+- **Edge Node Registration:**  
+  `POST /api/edge/register/`  
+  Registers a new edge node. Payload includes location and authentication info.
 
-### GraphQL
+- **Edge Node Routing:**  
+  `POST /api/edge/route/`  
+  Finds and returns the optimal edge node for a given request.
 
-- Visit `/graphql/`
-- Example:
+- **Health Check:**  
+  `GET /api/edge/health/`  
+  Returns the health status of edge nodes.
+
+#### GraphQL
+
+- **Monitor Node Performance:**  
+  `POST /graphql/`  
+  Query example:
   ```graphql
-  query {
+  {
     edgeNodes {
       id
-      name
-      latitude
-      longitude
+      location
       status
-    }
-    nodePerformance(nodeId: 1) {
-      avgLatency
-      requestCount
+      lastHealthCheck
+      requestsHandled
     }
   }
   ```
 
 ---
 
-## 🤖 AI Routing & Edge Deployment
+### Celery Tasks
 
-- Place your trained model as `model.pkl` in the correct location.
-- Celery tasks:
-  - `deploy_to_flyio` – Deploys to Fly.io.
-  - `deploy_code_with_ai_routing` – Predicts best edge node and deploys.
-- Features for predictions might include node geolocation, current workload, etc.
+- **Automated Deployment:**  
+  Deploys latest code to available edge platforms (Fly.io) using the Fly API.
 
----
-
-## 🔒 Security
-
-- **API Key:**  
-  Use API key authentication for edge nodes.
-- **Mutual TLS:**  
-  Configure mTLS at your proxy or platform layer (e.g., Nginx, Fly.io).//
+- **AI-Based Routing:**  
+  Predicts and routes requests to the optimal edge node based on real-time metrics.
 
 ---
 
-## 🧪 Testing
+### Security
 
-- Run unit tests:  
-  `python manage.py test`
-- Test Celery tasks:  
-  Import and run them directly or watch logs as you trigger deployments.
+- **Mutual TLS:** All edge communications use TLS with client certificates.
+- **API Key Authentication:** Register and use API keys for secure access to endpoints.
+- **CSRF Protection:**  
+  Add your domain to `CSRF_TRUSTED_ORIGINS` in `.env`.
+
+---
+
+## Project Structure
+
+- **models.py**: Contains `EdgeNode`, `APIRequestLog`, and other core models.
+- **serializers.py**: DRF serializers for model validation and data transfer.
+- **schema.py**: GraphQL types and queries.
+- **views.py**: All view logic for REST endpoints.
+- **tasks.py**: Celery tasks for deployment and AI-based routing.
+- **settings.py**: Django settings, including `.env` integration.
+- **Dockerfile**: For containerized deployment.
 
 ---
 
+## How to Run Locally
 
+1. **Clone the repository**
+    ```bash
+    git clone https://github.com/sassikoussai/project-django.git
+    cd project-django
+    ```
 
-## 🤝 Contributions
+2. **Create and activate a virtualenv**
+    ```bash
+    python3 -m venv venv
+    source venv/bin/activate
+    ```
 
-Open to PRs and issues—please describe your enhancement or fix clearly!
+3. **Install dependencies**
+    ```bash
+    pip install -r requirements.txt
+    ```
+
+4. **Set up your `.env` file** (see above)
+
+5. **Run migrations**
+    ```bash
+    python manage.py migrate
+    ```
+
+6. **Run the server**
+    ```bash
+    python manage.py runserver
+    ```
 
 ---
+
+## Usage of All Views
+
+- All views (REST and GraphQL) are documented via [DRF's browsable API](https://ai-based-resume-screening-recruitment.fly.dev/api/) and the `/graphql/` endpoint.
+- For custom endpoints or specific usage, see docstrings in `views.py`.
+
+---
+
+## Deployment
+
+- **Platform:** [Fly.io](https://fly.io)
+- **App Name:** `ai-based-resume-screening-recruitment-master`
+- **Deployments triggered via Celery tasks and Fly API integration.**
+
+---
+
+## License
+
+This project is licensed under the MIT License.
+
+---
+
+## Maintainer
+
+- [sassikoussai](https://github.com/sassikoussai)
