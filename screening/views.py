@@ -61,6 +61,13 @@ class EdgeNodeViewSet(viewsets.ModelViewSet):
     authentication_classes = [EdgeNodeAPIKeyAuthentication]
     permission_classes = [IsEdgeNodeAuthenticated]
 
+    def get_queryset(self):
+        # On récupère l'API key depuis le header
+        api_key = self.request.headers.get("x-api-key") or self.request.headers.get("api_key")
+        if api_key:
+            return EdgeNode.objects.filter(api_key=api_key)
+        return EdgeNode.objects.none()  # Pas d'API key, pas d'accès
+
     @action(detail=False, methods=['post'], url_path='register', permission_classes=[permissions.AllowAny])
     def register(self, request):
         serializer = EdgeNodeSerializer(data=request.data)
@@ -74,7 +81,6 @@ class EdgeNodeViewSet(viewsets.ModelViewSet):
             }, status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 class ApplicantViewSet(viewsets.ModelViewSet):
     queryset = Applicant.objects.all()
     serializer_class = ApplicantSerializer

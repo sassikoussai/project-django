@@ -86,7 +86,7 @@ WSGI_APPLICATION = "ai_based_resume_screening_recruitment.wsgi.application"
 # DATABASE_URL=postgres://postgres:admin123@localhost:5432/recruitment
 
 DATABASES = {
-    'default':{# env.db(default=f'postgres://postgres:admin123@localhost:5432/recruitment')
+    'default':{
     
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': "recruitment",
@@ -94,8 +94,10 @@ DATABASES = {
         'USER': "postgres",
         'PASSWORD': "admin123",
         'PORT': 5432,
-    }}
-
+    }} 
+# DATABASES = {
+#     'default': env.db()
+# }
 
 
 # Password validation
