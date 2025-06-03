@@ -5,13 +5,10 @@ from celery import shared_task
 import subprocess
 import logging
 
-# If you use django-environ, import and initialize it here:
-# import environ
-# env = environ.Env()
-# environ.Env.read_env()
+# )
 
-FLY_APP_NAME = os.environ.get("FLY_APP_NAME")  # or use env("FLY_APP_NAME")
-FLY_API_TOKEN = os.environ.get("FLY_API_TOKEN")  # or use env("FLY_API_TOKEN")
+FLY_APP_NAME = os.environ.get("FLY_APP_NAME")
+FLY_API_TOKEN = os.environ.get("FLY_API_TOKEN")
 FLY_API_URL = "https://api.fly.io/graphql"
 MODEL_PATH = os.path.join(os.path.dirname(__file__), "model.pkl")
 
@@ -41,14 +38,20 @@ def predict_optimal_node(features):
     return prediction[0]
 
 @shared_task
-def deploy_to_flyio():
+def deploy_to_flyio(app_name, image_tag):
     """
-    Run 'flyctl deploy --remote-only' from Celery.
+    Run 'flyctl deploy --remote-only --app <app_name> --image <image_tag>' from Celery.
     """
     try:
         project_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         result = subprocess.run(
-            ["flyctl", "deploy", "--remote-only"],
+            [
+                "flyctl",
+                "deploy",
+                "--remote-only",
+                "--app", app_name,
+                "--image", image_tag
+            ],
             cwd=project_dir,
             capture_output=True,
             text=True,
@@ -59,7 +62,6 @@ def deploy_to_flyio():
     except subprocess.CalledProcessError as e:
         logging.error("Fly.io deploy failed: %s", e.stderr)
         return {"status": "failed", "error": e.stderr}
-
 
 # AI model used
 
